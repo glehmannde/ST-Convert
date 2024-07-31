@@ -37,6 +37,10 @@ if uploaded_file is not None:
             df_lane = df[['Distance', speed_col, stroke_col]]
             # Rename the columns
             df_lane.columns = ['Distance', 'Speed', 'Frequency']
+            # Add the new columns with '0' filled
+            additional_columns = ['Schlagvortrieb', 'Acceleration', 'Pace', 'HR', 'TimeFromStart']
+            for col in additional_columns:
+                df_lane[col] = '0'
             # Append the DataFrame to the list
             dfs.append((shortname, df_lane))
             # Append the tab name to the list
