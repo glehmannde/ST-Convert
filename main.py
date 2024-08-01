@@ -8,9 +8,21 @@ st.title("CSV File Conversion from 'OS Paris' to 'CanoeTrainer'")
 # File uploader - allow only one file
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv", accept_multiple_files=False)
 
-def convert_df_to_csv(df):
+
+def convert_time_format(time_str):
+    """ Convert time from Minutes:Seconds,Hundredths to Seconds,Hundredths. """
+    try:
+        minutes, rest = time_str.split(':')
+        seconds, hundredths = rest.split('.')
+        total_seconds = int(minutes) * 60 + int(seconds)
+        return f"{total_seconds},{hundredths}"
+    except ValueError:
+        return time_str
+
+
+def convert_df_to_csv(df_conv):
     """ Convert a DataFrame to a CSV string with semicolon as separator and decimal comma. """
-    csv_str = df.to_csv(index=False, sep=';')
+    csv_str = df_conv.to_csv(index=False, sep=';')
     return csv_str.replace('.', ',').encode('utf-8')
 
 # Check if a file has been uploaded
@@ -43,6 +55,12 @@ if uploaded_file is not None:
             additional_columns = ['Schlagvortrieb', 'Acceleration', 'Pace', 'HR']
             for col in additional_columns:
                 df_lane[col] = '0'
+
+            # Filter out rows where 'Distance' > 1000
+            df_lane = df_lane[df_lane['Distance'] <= 1000]
+
+            # Convert the 'TimeFromStart' column format
+            df_lane['TimeFromStart'] = df_lane['TimeFromStart'].apply(convert_time_format)
 
             # Reorder the columns
             ordered_columns = ['Distance', 'Speed', 'Frequency', 'Schlagvortrieb', 'Acceleration', 'Pace', 'HR',
