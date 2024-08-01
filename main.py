@@ -9,8 +9,9 @@ st.title("CSV File Conversion from 'OS Paris' to 'CanoeTrainer'")
 uploaded_file = st.file_uploader("Choose a CSV file", type="csv", accept_multiple_files=False)
 
 def convert_df_to_csv(df):
-    """ Convert a DataFrame to a CSV string. """
-    return df.to_csv(index=False, sep=';').encode('utf-8')
+    """ Convert a DataFrame to a CSV string with semicolon as separator and decimal comma. """
+    csv_str = df.to_csv(index=False, sep=';')
+    return csv_str.replace('.', ',').encode('utf-8')
 
 # Check if a file has been uploaded
 if uploaded_file is not None:
@@ -22,25 +23,32 @@ if uploaded_file is not None:
     # Initialize a list to hold the DataFrame names
     dfs = [("Original DataFrame", df)]
 
-    # Loop through pairs from 'Speed1' and 'Stroke1' to 'Speed10' and 'Stroke10'
+    # Loop through pairs from 'Speed1', 'Time1' and 'Stroke1' to 'Speed10', 'Time10' and 'Stroke10'
     for i in range(1, 11):
         speed_col = f'Speed{i}'
         stroke_col = f'Stroke{i}'
+        time_col = f'Time{i}'
         shortname_col = f'ShortName{i}'
 
         # Check if both columns exist
-        if speed_col in df.columns and stroke_col in df.columns and shortname_col in df.columns:
+        if speed_col in df.columns and stroke_col in df.columns and time_col in df.columns and shortname_col in df.columns:
             # Extract the shortname value for the tab name
             shortname = df[shortname_col].iloc[0] if not df[shortname_col].empty else f"Lane {i}"
 
             # Extract the specified columns to create a new DataFrame
-            df_lane = df[['Distance', speed_col, stroke_col]]
+            df_lane = df[['Distance', speed_col, stroke_col, time_col]]
             # Rename the columns
-            df_lane.columns = ['Distance', 'Speed', 'Frequency']
+            df_lane.columns = ['Distance', 'Speed', 'Frequency', 'TimeFromStart']
             # Add the new columns with '0' filled
-            additional_columns = ['Schlagvortrieb', 'Acceleration', 'Pace', 'HR', 'TimeFromStart']
+            additional_columns = ['Schlagvortrieb', 'Acceleration', 'Pace', 'HR']
             for col in additional_columns:
                 df_lane[col] = '0'
+
+            # Reorder the columns
+            ordered_columns = ['Distance', 'Speed', 'Frequency', 'Schlagvortrieb', 'Acceleration', 'Pace', 'HR',
+                               'TimeFromStart']
+            df_lane = df_lane[ordered_columns]
+
             # Append the DataFrame to the list
             dfs.append((shortname, df_lane))
             # Append the tab name to the list
