@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import io
+from collections import defaultdict
 
 # Title of the app
 st.title("CSV File Conversion from 'OS Paris' to 'CanoeTrainer'")
@@ -34,6 +34,8 @@ if uploaded_file is not None:
     tab_names = ["Original DataFrame"]
     # Initialize a list to hold the DataFrame names
     dfs = [("Original DataFrame", df)]
+    # Dictionary to keep count of tab names
+    name_count = defaultdict(int)
 
     # Loop through pairs from 'Speed1', 'Time1' and 'Stroke1' to 'Speed10', 'Time10' and 'Stroke10'
     for i in range(1, 11):
@@ -46,6 +48,11 @@ if uploaded_file is not None:
         if speed_col in df.columns and stroke_col in df.columns and time_col in df.columns and shortname_col in df.columns:
             # Extract the shortname value for the tab name
             shortname = df[shortname_col].iloc[0] if not df[shortname_col].empty else f"Lane {i}"
+
+            # Count the occurrence of the shortname
+            name_count[shortname] += 1
+            if name_count[shortname] > 1:
+                shortname = f"{shortname}_{name_count[shortname]}"
 
             # Extract the specified columns to create a new DataFrame
             df_lane = df[['Distance', speed_col, stroke_col, time_col]]
